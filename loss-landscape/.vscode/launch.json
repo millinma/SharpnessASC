@@ -1,0 +1,75 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            //TODO change cude
+            // "args": ["--cuda", "--model", "cnn10", "--dataset", "dcase", "--x=-0.5:1.5:401", "--dir_type", "states",
+            //    "--model_file", "DCASE2022/trained_nets/firsttry_batch=32/state.pth.tar",
+            //    //"--model_file2", "DCASE2022/trained_nets/firsttry_batch=1024/state.pth.tar",
+            //    "--plot"],
+            // "args": ["--cuda", "--model", "cnn10", "--dataset", "dcase", "--x=-0.5:1.5:201", "--dir_type", "states",
+            //     "--data-root", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/metadata/",  
+            //     "--features", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/features.csv",
+            //    "--model_file", "DCASE2020/trained_nets/run_batch32_cnn14_Adam/no_augment/state.pth.tar",
+            //    "--xnorm", "filter", "--xignore", "biasbn",
+            // //    "--model_file2", "DCASE2022/trained_nets/firsttry_batch=1024/state.pth.tar",
+            //    "--plot", "--batch_size", "16"],
+            //"args": ["--cuda", "--model", "cnn10", "--partition", "test", "--dataset", "dcase", "--x=-0.5:1.5:401", "--dir_type", "states",
+            //    "--data-root", "/data/eihw-gpu5/trianand/DCASE/d22-t1/TAU-urban-acoustic-scenes-2022-mobile-development",  
+            //    "--features", "/data/eihw-gpu5/trianand/DCASE/d22-t1/features/torchlibrosa-melspects/features.csv",
+            //    "--model_file", "DCASE2022/trained_nets/firsttry_batch=32/state.pth.tar",
+            //    "--model_file2", "DCASE2022/trained_nets/firsttry_batch=1024/state.pth.tar",
+            //    "--plot"],
+            // "args": ["--cuda", "--mpi", "--model", "cnn14", "--partition", "train", "--dataset", "dcase", "--x=-1.5:1.8:21", "--y=-2:2:21", "--dir_type", "weights",
+            //     "--data-root", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/metadata/",  
+            //     "--features", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/features.csv",
+            //     //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/test_hessian/state.pth.tar", 
+            //     "--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/mixup_multilabel/state.pth.tar", 
+            //     "--xnorm", "filter", "--xignore", "biasbn", "--ynorm", "filter", "--yignore", "biasbn", "--ngpu", "1",
+            //     "--plot", "--batch_size", "16"],
+            // "args": ["--cuda", "--mpi", "--partition", "train", "--dataset", "dcase", "--x=-1.5:1.8:101", "--dir_type", "weights",
+            //     "--data-root", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/metadata/",  
+            //     "--features", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/features.csv",
+            //     //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/test_hessian/state.pth.tar", 
+            //     //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/mixup_multilabel/state.pth.tar", 
+            //     "--model_folder", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/model_selection_interspeech_paper/3interspeech_test/RQ1_Generalisation/", 
+            //     "--xnorm", "filter", "--xignore", "biasbn", "--ngpu", "1",
+            //     "--batch_size", "16", "--second_dim"
+            //     // , "--no_random_seed"
+            // ],
+
+            // plot_surface_folder_loop
+            "args": ["--cuda", "--mpi", "--partition", "train", "--dataset", "dcase", "--x=-0.25:0.25:3", "--dir_type", "states",
+                "--data-root", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/metadata/",  
+                "--features", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/features.csv",
+                //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/test_hessian/state.pth.tar", 
+                //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/mixup_multilabel/state.pth.tar", 
+                "--model_folder", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/model_selection_interspeech_paper/test_for_new_experiments/", 
+                "--xnorm", "filter", "--xignore", "biasbn", "--ngpu", "1",
+                "--batch_size", "16", "--n_seeds", "10"//, "random_seed", "42"
+                // , "--no_random_seed"
+            ],
+            
+            // calculate_curvature_value_folder
+            // "args": ["--cuda", "--mpi", "--partition", "train", "--dataset", "dcase", "--x=-0.25:0.25:3", "--dir_type", "states",
+            //     "--data-root", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/metadata/",  
+            //     "--features", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/features.csv",
+            //     //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/test_hessian/state.pth.tar", 
+            //     //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/mixup_multilabel/state.pth.tar", 
+            //     "--model_folder", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/all_grid_interspeech/03_seed_2D_visualisations/", 
+            //     "--xnorm", "filter", "--xignore", "biasbn", "--ngpu", "1", "--second_dim",
+            //     "--batch_size", "16"//, "--n_seeds", "10", "random_seed", "42"
+            //     // , "--no_random_seed"
+            // ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

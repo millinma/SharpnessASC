@@ -1,0 +1,182 @@
+direnv: loading /nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/.envrc
+direnv: loading ~/myVisualisationEnv/.envrc
+direnv: using flake path:/home/milliman/myVisualisationEnv/.nix
+direnv: nix-direnv: using cached dev shell
+[38;5;202m🔨 Welcome to DeepLearningGPU[0m
+
+[1m[general commands][0m
+
+  julia  - High-level, high-performance, dynamic language for technical computing
+  menu   - prints this menu
+  poetry - Python dependency management and packaging made easy.
+
+direnv: export +CPPFLAGS +DEVSHELL_DIR +IN_NIX_SHELL +JULIA_PROJECT +LDFLAGS +NIXPKGS_PATH +POETRY_VIRTUALENVS_IN_PROJECT +PRJ_DATA_DIR +PRJ_ROOT +VIRTUAL_ENV +VIRTUAL_ENV_PROMPT +XLA_FLAGS +name ~LD_LIBRARY_PATH ~PATH ~XDG_DATA_DIRS
+Rank 0 use GPU 0 of 2 GPUs on eihw-gpu5
+-------------------------------------------------------------------
+setup_direction
+-------------------------------------------------------------------
+/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/test_hessian/state.pth.tar_weights_xignore=biasbn_xnorm=filter_yignore=biasbn_ynorm=filter.h5 is already setted up
+cosine similarity between x-axis and y-axis: -0.000139
+-------------------------------------------------------------
+rank: 0
+-------------------------------------------------------------
+/home/milliman/myVisualisationEnv/.venv/lib/python3.10/site-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+Computing 16 values for rank 0
+Rank 0: computing max eigenvalue
+   Iter: 1  time: 1907.706940
+   Iter: 2  time: 1879.028747
+   Iter: 3  time: 1878.661447
+   Iter: 4  time: 1932.497111
+   Iter: 5  time: 1732.045061
+   Iter: 6  time: 1822.209437
+   Iter: 7  time: 1785.662267
+   Iter: 8  time: 1803.036096
+   Iter: 9  time: 1801.069463
+   Iter: 10  time: 1817.718924
+   Iter: 11  time: 1812.831508
+   Iter: 12  time: 1861.761912
+   Iter: 13  time: 1843.207674
+   Iter: 14  time: 1860.733289
+   Iter: 15  time: 1874.282241
+   Iter: 16  time: 1808.970480
+   Iter: 17  time: 1772.041099
+   Iter: 18  time: 1756.500828
+   Iter: 19  time: 1755.518530
+   Iter: 20  time: 1678.476184
+   Iter: 21  time: 1788.080508
+max eigenvalue = 148662.781250
+Rank 0: Computing shifted eigenvalue
+   Iter: 22  time: 1868.851556
+   Iter: 23  time: 1884.344414
+   Iter: 24  time: 1803.340721
+   Iter: 25  time: 1847.392948
+   Iter: 26  time: 1704.921236
+   Iter: 27  time: 1894.135254
+   Iter: 28  time: 1772.333096
+   Iter: 29  time: 1812.723401
+   Iter: 30  time: 1908.168762
+   Iter: 31  time: 1779.942280
+   Iter: 32  time: 1880.716235
+   Iter: 33  time: 1866.983846
+   Iter: 34  time: 1807.065929
+   Iter: 35  time: 1728.072157
+   Iter: 36  time: 1663.334490
+   Iter: 37  time: 1702.079167
+   Iter: 38  time: 1666.244948
+   Iter: 39  time: 1690.582112
+   Iter: 40  time: 1691.430077
+   Iter: 41  time: 1677.720570
+   Iter: 42  time: 1682.178365
+min eigenvalue = -45053.58326987413
+rank: 0 1/16  (6.25%)  0	  [-1.5 -2. ] 	maxeig:148662.78125 	mineig:-45053.58327 	iter: 42 	time:77245.76 	sync:0.00
+Rank 0: computing max eigenvalue
+   Iter: 1  time: 1830.246563
+   Iter: 2  time: 1754.626426
+   Iter: 3  time: 1763.345924
+   Iter: 4  time: 1769.103511
+   Iter: 5  time: 1799.009856
+   Iter: 6  time: 1781.231941
+   Iter: 7  time: 1744.152388
+   Iter: 8  time: 1687.739245
+   Iter: 9  time: 1632.766632
+   Iter: 10  time: 1736.272524
+   Iter: 11  time: 1763.612061
+   Iter: 12  time: 1685.972532
+   Iter: 13  time: 1716.787828
+   Iter: 14  time: 1747.336131
+   Iter: 15  time: 1716.040333
+   Iter: 16  time: 1741.137464
+   Iter: 17  time: 1741.206059
+   Iter: 18  time: 1854.765493
+   Iter: 19  time: 1842.218521
+   Iter: 20  time: 1843.276842
+   Iter: 21  time: 1828.475836
+max eigenvalue = 119829.312500
+Rank 0: Computing shifted eigenvalue
+   Iter: 22  time: 1878.091571
+   Iter: 23  time: 1826.716762
+   Iter: 24  time: 1902.008177
+   Iter: 25  time: 1805.948470
+   Iter: 26  time: 1857.254811
+   Iter: 27  time: 1886.459684
+   Iter: 28  time: 1883.777723
+   Iter: 29  time: 1884.142115
+   Iter: 30  time: 1776.768208
+   Iter: 31  time: 1782.161429
+   Iter: 32  time: 1865.216782
+   Iter: 33  time: 1855.459710
+   Iter: 34  time: 1856.196180
+   Iter: 35  time: 1853.770864
+   Iter: 36  time: 1825.854706
+   Iter: 37  time: 1896.298170
+   Iter: 38  time: 1836.790284
+   Iter: 39  time: 1925.863490
+   Iter: 40  time: 1892.924092
+   Iter: 41  time: 1768.713409
+   Iter: 42  time: 1782.927353
+min eigenvalue = -4579.370308443082
+rank: 0 2/16  (12.50%)  1	  [-0.4 -2. ] 	maxeig:119829.31250 	mineig:-4579.37031 	iter: 42 	time:77829.29 	sync:0.00
+Rank 0: computing max eigenvalue
+   Iter: 1  time: 1822.279772
+   Iter: 2  time: 1598.480785
+   Iter: 3  time: 1552.640958
+   Iter: 4  time: 1631.758714
+   Iter: 5  time: 1869.583002
+   Iter: 6  time: 1866.674479
+   Iter: 7  time: 1873.379031
+   Iter: 8  time: 1781.996027
+   Iter: 9  time: 1740.724200
+   Iter: 10  time: 1884.990110
+   Iter: 11  time: 1765.638371
+   Iter: 12  time: 1808.820422
+   Iter: 13  time: 1897.004415
+   Iter: 14  time: 1848.908219
+   Iter: 15  time: 1832.470240
+   Iter: 16  time: 1786.152040
+   Iter: 17  time: 1825.189378
+   Iter: 18  time: 1799.335294
+   Iter: 19  time: 1756.090506
+   Iter: 20  time: 1823.322788
+   Iter: 21  time: 1842.594882
+max eigenvalue = 122454.109375
+Rank 0: Computing shifted eigenvalue
+   Iter: 22  time: 1826.483442
+   Iter: 23  time: 1891.597286
+   Iter: 24  time: 1782.092649
+   Iter: 25  time: 1837.069686
+   Iter: 26  time: 1834.716633
+   Iter: 27  time: 1851.340173
+   Iter: 28  time: 1780.926297
+   Iter: 29  time: 1785.140941
+   Iter: 30  time: 1792.652692
+   Iter: 31  time: 1807.451098
+   Iter: 32  time: 1800.624189
+   Iter: 33  time: 1764.805120
+   Iter: 34  time: 1818.532187
+   Iter: 35  time: 1770.937161
+   Iter: 36  time: 1871.926362
+   Iter: 37  time: 1890.656831
+   Iter: 38  time: 1873.437345
+   Iter: 39  time: 1863.994303
+   Iter: 40  time: 1918.206041
+   Iter: 41  time: 1882.650455
+   Iter: 42  time: 1901.400402
+min eigenvalue = -2717.5445320834624
+rank: 0 3/16  (18.75%)  2	  [ 0.7 -2. ] 	maxeig:122454.10938 	mineig:-2717.54453 	iter: 42 	time:77902.09 	sync:0.00
+Rank 0: computing max eigenvalue
+   Iter: 1  time: 1888.939901
+   Iter: 2  time: 1803.068471
+   Iter: 3  time: 1811.121483
+   Iter: 4  time: 1822.915397
+   Iter: 5  time: 1853.558343
+   Iter: 6  time: 1833.005624
+   Iter: 7  time: 1803.033118
+   Iter: 8  time: 1807.606927
+   Iter: 9  time: 1883.411817
+   Iter: 10  time: 1714.556757
+   Iter: 11  time: 1779.213367
+   Iter: 12  time: 1771.028422
+   Iter: 13  time: 1744.240537
+   Iter: 14  time: 1736.147703
+slurmstepd: error: *** JOB 23785 ON eihw-gpu5 CANCELLED AT 2023-02-16T12:08:55 DUE TO TIME LIMIT ***

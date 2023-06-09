@@ -1,0 +1,47 @@
+direnv: loading /nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/.envrc
+direnv: loading ~/myVisualisationEnv/.envrc
+direnv: using flake path:/home/milliman/myVisualisationEnv/.nix
+direnv: nix-direnv: using cached dev shell
+[38;5;202m🔨 Welcome to DeepLearningGPU[0m
+
+[1m[general commands][0m
+
+  julia  - High-level, high-performance, dynamic language for technical computing
+  menu   - prints this menu
+  poetry - Python dependency management and packaging made easy.
+
+direnv: export +CPPFLAGS +DEVSHELL_DIR +IN_NIX_SHELL +JULIA_PROJECT +LDFLAGS +NIXPKGS_PATH +POETRY_VIRTUALENVS_IN_PROJECT +PRJ_DATA_DIR +PRJ_ROOT +VIRTUAL_ENV +VIRTUAL_ENV_PROMPT +XLA_FLAGS +name ~LD_LIBRARY_PATH ~PATH ~XDG_DATA_DIRS
+Rank 0 use GPU 0 of 1 GPUs on eihw-gpu6
+-------------------------------------------------------------
+rank: 0
+-------------------------------------------------------------
+/home/milliman/myVisualisationEnv/.venv/lib/python3.10/site-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+-------------------------------------------------------------------
+setup_direction
+-------------------------------------------------------------------
+/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/model_selection_interspeech_paper/Interspeech_highres_2D_Paper/cnn10_None_Adam_0-0001_16_50_44_None/state.pth.tar_weights_xignore=biasbn_xnorm=filter_yignore=biasbn_ynorm=filter.h5 is already setted up
+/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/model_selection_interspeech_paper/Interspeech_highres_2D_Paper/cnn10_None_Adam_0-0001_16_50_44_None/state.pth.tar_weights_xignore=biasbn_xnorm=filter_yignore=biasbn_ynorm=filter.h5_[-1.0,1.0,41]x[-1.0,1.0,41]_train.h5 is already set up
+cosine similarity between x-axis and y-axis: 0.000263
+Computing 0 values for rank 0
+Rank 0 done!  Total time: 0.00 Sync: 0.00
+------------------------------------------------------------------
+plot_2d_contour
+------------------------------------------------------------------
+loading surface file: /nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/model_selection_interspeech_paper/Interspeech_highres_2D_Paper/cnn10_None_Adam_0-0001_16_50_44_None/state.pth.tar_weights_xignore=biasbn_xnorm=filter_yignore=biasbn_ynorm=filter.h5_[-1.0,1.0,41]x[-1.0,1.0,41]_train.h5
+len(xcoordinates): 41   len(ycoordinates): 41
+max(train_loss) = 46.071296 	 min(train_loss) = 0.023719
+[[46.07129555 40.3710648  35.410103   ... 21.20930239 24.51350346
+  28.15808898]
+ [41.09293116 35.98536668 31.51487418 ... 18.5847402  21.28526578
+  24.37144669]
+ [36.57085855 32.01841677 28.03231384 ... 16.62905591 18.81423311
+  21.38393299]
+ ...
+ [27.74762825 24.87591492 22.61371219 ... 29.85289075 34.59363442
+  39.76605311]
+ [30.43935745 27.01767919 24.24217591 ... 31.38280532 36.60557846
+  42.35376544]
+ [33.31238388 29.32855381 26.09538673 ... 33.2399995  38.88025402
+  45.21723455]]
+/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/model_selection_interspeech_paper/Interspeech_highres_2D_Paper/cnn10_None_Adam_0-0001_16_50_44_None/state.pth.tar_weights_xignore=biasbn_xnorm=filter_yignore=biasbn_ynorm=filter.h5_[-1.0,1.0,41]x[-1.0,1.0,41]_train.h5_train_loss_2dcontourf_train.pdf

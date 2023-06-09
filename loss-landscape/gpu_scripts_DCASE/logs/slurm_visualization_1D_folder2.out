@@ -1,0 +1,101 @@
+direnv: loading /nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/.envrc
+direnv: loading ~/myVisualisationEnv/.envrc
+direnv: using flake path:/home/milliman/myVisualisationEnv/.nix
+direnv: nix-direnv: using cached dev shell
+[38;5;202m🔨 Welcome to DeepLearningGPU[0m
+
+[1m[general commands][0m
+
+  julia  - High-level, high-performance, dynamic language for technical computing
+  menu   - prints this menu
+  poetry - Python dependency management and packaging made easy.
+
+direnv: export +CPPFLAGS +DEVSHELL_DIR +IN_NIX_SHELL +JULIA_PROJECT +LDFLAGS +NIXPKGS_PATH +POETRY_VIRTUALENVS_IN_PROJECT +PRJ_DATA_DIR +PRJ_ROOT +VIRTUAL_ENV +VIRTUAL_ENV_PROMPT +XLA_FLAGS +name ~LD_LIBRARY_PATH ~PATH ~XDG_DATA_DIRS
+Rank 0 use GPU 0 of 1 GPUs on eihw-gpu6
+-------------------------------------------------------------
+rank: 0
+-------------------------------------------------------------
+/home/milliman/myVisualisationEnv/.venv/lib/python3.10/site-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+-------------------------------------------------------------------
+setup_direction
+-------------------------------------------------------------------
+Setting up the plotting directions...
+direction file created: /nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/model_selection_interspeech_paper/02_test/cnn10_None_Adam_0-0001_16_50_44_None/state.pth.tar_states_xignore=biasbn_xnorm=filter.h5
+Computing 51 values for rank 0
+Evaluating rank 0  0/51  (0.0%)  coord=-1.0 	train_loss= 23.729 	train_acc=10.23 	time=21.85 	sync=0.00
+Evaluating rank 0  1/51  (2.0%)  coord=-0.96 	train_loss= 22.374 	train_acc=10.23 	time=20.30 	sync=0.00
+Evaluating rank 0  2/51  (3.9%)  coord=-0.92 	train_loss= 20.996 	train_acc=10.23 	time=19.90 	sync=0.00
+Evaluating rank 0  3/51  (5.9%)  coord=-0.88 	train_loss= 19.581 	train_acc=10.23 	time=20.01 	sync=0.00
+Evaluating rank 0  4/51  (7.8%)  coord=-0.84 	train_loss= 18.129 	train_acc=10.23 	time=19.72 	sync=0.00
+Evaluating rank 0  5/51  (9.8%)  coord=-0.8 	train_loss= 16.658 	train_acc=10.26 	time=19.71 	sync=0.00
+Evaluating rank 0  6/51  (11.8%)  coord=-0.76 	train_loss= 15.181 	train_acc=10.36 	time=20.23 	sync=0.00
+Evaluating rank 0  7/51  (13.7%)  coord=-0.72 	train_loss= 13.706 	train_acc=10.66 	time=19.75 	sync=0.00
+Evaluating rank 0  8/51  (15.7%)  coord=-0.6799999999999999 	train_loss= 12.237 	train_acc=11.46 	time=19.81 	sync=0.00
+Evaluating rank 0  9/51  (17.6%)  coord=-0.64 	train_loss= 10.773 	train_acc=12.80 	time=20.10 	sync=0.00
+Evaluating rank 0  10/51  (19.6%)  coord=-0.6 	train_loss= 9.319 	train_acc=14.75 	time=20.21 	sync=0.00
+Evaluating rank 0  11/51  (21.6%)  coord=-0.56 	train_loss= 7.882 	train_acc=17.97 	time=19.64 	sync=0.00
+Evaluating rank 0  12/51  (23.5%)  coord=-0.52 	train_loss= 6.476 	train_acc=23.84 	time=20.02 	sync=0.00
+Evaluating rank 0  13/51  (25.5%)  coord=-0.48 	train_loss= 5.135 	train_acc=31.63 	time=20.16 	sync=0.00
+Evaluating rank 0  14/51  (27.5%)  coord=-0.43999999999999995 	train_loss= 3.904 	train_acc=41.30 	time=20.16 	sync=0.00
+Evaluating rank 0  15/51  (29.4%)  coord=-0.4 	train_loss= 2.827 	train_acc=52.19 	time=20.00 	sync=0.00
+Evaluating rank 0  16/51  (31.4%)  coord=-0.36 	train_loss= 1.947 	train_acc=62.92 	time=19.89 	sync=0.00
+Evaluating rank 0  17/51  (33.3%)  coord=-0.31999999999999995 	train_loss= 1.276 	train_acc=72.32 	time=20.07 	sync=0.00
+Evaluating rank 0  18/51  (35.3%)  coord=-0.28 	train_loss= 0.795 	train_acc=79.92 	time=19.96 	sync=0.00
+Evaluating rank 0  19/51  (37.3%)  coord=-0.24 	train_loss= 0.470 	train_acc=86.65 	time=19.99 	sync=0.00
+Evaluating rank 0  20/51  (39.2%)  coord=-0.19999999999999996 	train_loss= 0.261 	train_acc=91.95 	time=19.73 	sync=0.00
+Evaluating rank 0  21/51  (41.2%)  coord=-0.16000000000000003 	train_loss= 0.135 	train_acc=95.44 	time=20.04 	sync=0.00
+Evaluating rank 0  22/51  (43.1%)  coord=-0.12 	train_loss= 0.069 	train_acc=97.74 	time=20.10 	sync=0.00
+Evaluating rank 0  23/51  (45.1%)  coord=-0.07999999999999996 	train_loss= 0.038 	train_acc=98.80 	time=20.31 	sync=0.00
+Evaluating rank 0  24/51  (47.1%)  coord=-0.040000000000000036 	train_loss= 0.028 	train_acc=99.27 	time=20.14 	sync=0.00
+Evaluating rank 0  25/51  (49.0%)  coord=0.0 	train_loss= 0.026 	train_acc=99.40 	time=19.87 	sync=0.00
+Evaluating rank 0  26/51  (51.0%)  coord=0.040000000000000036 	train_loss= 0.032 	train_acc=99.15 	time=40.05 	sync=0.00
+Evaluating rank 0  27/51  (52.9%)  coord=0.08000000000000007 	train_loss= 0.051 	train_acc=98.62 	time=80.17 	sync=0.00
+Evaluating rank 0  28/51  (54.9%)  coord=0.1200000000000001 	train_loss= 0.117 	train_acc=96.74 	time=20.03 	sync=0.00
+Evaluating rank 0  29/51  (56.9%)  coord=0.15999999999999992 	train_loss= 0.278 	train_acc=93.36 	time=19.90 	sync=0.00
+Evaluating rank 0  30/51  (58.8%)  coord=0.19999999999999996 	train_loss= 0.518 	train_acc=88.87 	time=23.93 	sync=0.00
+Evaluating rank 0  31/51  (60.8%)  coord=0.24 	train_loss= 0.808 	train_acc=84.41 	time=29.88 	sync=0.00
+Evaluating rank 0  32/51  (62.7%)  coord=0.28 	train_loss= 1.132 	train_acc=79.11 	time=20.32 	sync=0.00
+Evaluating rank 0  33/51  (64.7%)  coord=0.32000000000000006 	train_loss= 1.474 	train_acc=74.15 	time=20.10 	sync=0.00
+Evaluating rank 0  34/51  (66.7%)  coord=0.3600000000000001 	train_loss= 1.814 	train_acc=69.07 	time=20.20 	sync=0.00
+Evaluating rank 0  35/51  (68.6%)  coord=0.40000000000000013 	train_loss= 2.142 	train_acc=64.60 	time=20.23 	sync=0.00
+Evaluating rank 0  36/51  (70.6%)  coord=0.43999999999999995 	train_loss= 2.466 	train_acc=60.01 	time=20.27 	sync=0.00
+Evaluating rank 0  37/51  (72.5%)  coord=0.48 	train_loss= 2.828 	train_acc=55.36 	time=20.35 	sync=0.00
+Evaluating rank 0  38/51  (74.5%)  coord=0.52 	train_loss= 3.274 	train_acc=51.02 	time=20.27 	sync=0.00
+Evaluating rank 0  39/51  (76.5%)  coord=0.56 	train_loss= 3.793 	train_acc=46.97 	time=20.10 	sync=0.00
+Evaluating rank 0  40/51  (78.4%)  coord=0.6000000000000001 	train_loss= 4.361 	train_acc=42.51 	time=19.90 	sync=0.00
+Evaluating rank 0  41/51  (80.4%)  coord=0.6400000000000001 	train_loss= 4.968 	train_acc=38.65 	time=20.18 	sync=0.00
+Evaluating rank 0  42/51  (82.4%)  coord=0.6799999999999999 	train_loss= 5.611 	train_acc=35.28 	time=20.21 	sync=0.00
+Evaluating rank 0  43/51  (84.3%)  coord=0.72 	train_loss= 6.286 	train_acc=32.11 	time=20.08 	sync=0.00
+Evaluating rank 0  44/51  (86.3%)  coord=0.76 	train_loss= 6.996 	train_acc=29.16 	time=20.03 	sync=0.00
+Evaluating rank 0  45/51  (88.2%)  coord=0.8 	train_loss= 7.752 	train_acc=26.41 	time=19.66 	sync=0.00
+Evaluating rank 0  46/51  (90.2%)  coord=0.8400000000000001 	train_loss= 8.572 	train_acc=23.48 	time=20.13 	sync=0.00
+Evaluating rank 0  47/51  (92.2%)  coord=0.8800000000000001 	train_loss= 9.475 	train_acc=20.53 	time=20.03 	sync=0.00
+Evaluating rank 0  48/51  (94.1%)  coord=0.9199999999999999 	train_loss= 10.458 	train_acc=18.41 	time=19.86 	sync=0.00
+Evaluating rank 0  49/51  (96.1%)  coord=0.96 	train_loss= 11.518 	train_acc=17.31 	time=20.32 	sync=0.00
+Evaluating rank 0  50/51  (98.0%)  coord=1.0 	train_loss= 12.685 	train_acc=16.66 	time=19.79 	sync=0.00
+Rank 0 done!  Total time: 1119.60 Sync: 0.00
+------------------------------------------------------------------
+plot_1d_loss_err
+------------------------------------------------------------------
+<KeysViewHDF5 ['dir_file', 'train_acc', 'train_loss', 'xcoordinates']>
+train_loss
+[23.72885928 22.374428   20.99636362 19.5806408  18.12910166 16.6582935
+ 15.18148549 13.70565802 12.23698702 10.77329167  9.3192262   7.88232485
+  6.47587261  5.13505142  3.90399795  2.82730669  1.94742951  1.27571956
+  0.79488788  0.46974635  0.26091101  0.13530555  0.06881369  0.03845836
+  0.02794916  0.0262246   0.03183825  0.05080746  0.11712551  0.27815837
+  0.51804115  0.80800493  1.13166322  1.47378615  1.81437455  2.1420267
+  2.46570873  2.82840007  3.27437692  3.79263872  4.36140472  4.96817502
+  5.61099868  6.28637815  6.99617841  7.75194985  8.57208554  9.47510381
+ 10.45837084 11.51771034 12.68487103]
+train_acc
+[10.23492336 10.23492336 10.23492336 10.23492336 10.23492336 10.25641026
+ 10.35668242 10.66466122 11.45967626 12.79902593 14.74717089 17.97020484
+ 23.83612663 31.62870649 41.30497063 52.19166309 62.92078499 72.32488182
+ 79.92407964 86.64947715 91.94957742 95.43761639 97.74387624 98.80389629
+ 99.26944564 99.398367   99.14768658 98.62483885 96.74115456 93.36055006
+ 88.86978943 84.40767798 79.11474001 74.15126773 69.07319868 64.59676264
+ 60.01289214 55.35739865 51.02420857 46.97034809 42.50823664 38.6477582
+ 35.2814783  32.10858043 29.15771379 26.41455379 23.47801175 20.53430741
+ 18.4142673  17.31127346 16.65950437]

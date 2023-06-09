@@ -1,0 +1,14 @@
+*.pyc
+*.DS_Store
+*.t7
+*.pth
+*.pdf
+cifar10/plots/*.png
+cifar10/plots/*.h5
+cifar10/data/
+cifar10/trained_nets/
+DCASE2020/
+DCASE2022/
+model_selection_interspeech_paper/
+models_from_simon/
+all_grid_interspeech/
