@@ -23,6 +23,8 @@
 import audobject
 import torch
 import torch.nn.functional as F
+import torchvision
+from efficientnet_pytorch import EfficientNet
 
 
 class config:
@@ -199,21 +201,24 @@ class Cnn14(torch.nn.Module, audobject.Object):
 
 
 class Cnn10(torch.nn.Module, audobject.Object):
+    # input dimensions for DCASE (None, 1 , 1001, 64)
+    # TODO: Seems like it has to have at least 64 in the last dimension
     def __init__(
         self,
         output_dim: int,
         sigmoid_output: bool = False,
-        segmentwise: bool = False
+        segmentwise: bool = False,
+        in_channels: int = 1
     ):
 
         super().__init__()
         self.output_dim = output_dim
         self.sigmoid_output = sigmoid_output
         self.segmentwise = segmentwise
-
+        self.in_channels = in_channels
         self.bn0 = torch.nn.BatchNorm2d(64)
 
-        self.conv_block1 = ConvBlock(in_channels=1, out_channels=64)
+        self.conv_block1 = ConvBlock(in_channels=in_channels, out_channels=64)
         self.conv_block2 = ConvBlock(in_channels=64, out_channels=128)
         self.conv_block3 = ConvBlock(in_channels=128, out_channels=256)
         self.conv_block4 = ConvBlock(in_channels=256, out_channels=512)
@@ -267,8 +272,84 @@ class Cnn10(torch.nn.Module, audobject.Object):
         return x
 
     def forward(self, x):
+        # print(x.shape)
         x = self.get_embedding(x)
         x = self.out(x)
         if self.sigmoid_output:
             x = torch.sigmoid(x)
         return x
+
+def create_ResNet50_model(num_classes, pretrained=False):
+    # Load the ResNet50 model
+    model = torchvision.models.resnet50(pretrained=pretrained)
+
+    # Modify the final fully connected layer for CIFAR10
+    num_ftrs = model.fc.in_features
+    model.fc = torch.nn.Linear(num_ftrs, num_classes) 
+
+class ModifiedEfficientNet(torch.nn.Module):
+    def __init__(self, output_dim, scaling_type='efficientnet-b0', pretrained=True):
+        super(ModifiedEfficientNet, self).__init__()
+        
+        if pretrained:
+            print("Pretrained")
+            self.effnet = EfficientNet.from_pretrained(scaling_type)
+        else:
+            print("Not Pretrained")
+            self.effnet = EfficientNet.from_name(scaling_type)
+            
+        self.effnet._fc = torch.nn.Linear(self.effnet._fc.in_features, output_dim)
+
+    def forward(self, x):
+        x = self.effnet(x)
+        return x
+
+
+def load(dataset, model_name, model_file, out_dim=10, data_parallel=False):
+    if dataset == 'cifar10':
+        net = cifar10.model_loader.load(model_name, model_file, data_parallel)
+    elif dataset == 'dcase':
+        #out_dim for dcase is 10
+        if model_name == "cnn10":
+            net = Cnn10(out_dim)
+        elif model_name == "cnn14":
+            net = Cnn14(out_dim)
+        net.load_state_dict(torch.load(model_file))
+        net.eval()
+    return net
+
+
+# def create_efficientnet(num_classes, scaling_type='efficientnet_b0', pretrained=False):
+#     # scaling  type: one of efficientnet_b0, efficientnet_b4, efficientnet_widese_b0, efficientnet_widese_b4
+#     # Load the ResNet50 model
+#     def __init__(
+#         self,
+#         output_dim: int,
+#         in_channels: int = 3
+#     ):
+
+#         super().__init__()
+#         self.effnet = EfficientNet.from_pretrained("efficientnet-b0")
+    
+#     def forward(self, x):
+
+
+
+#     model_type_name = "nvidia_" + scaling_type
+#     efficientnet = torchvision.models.efficientnet_b0()
+
+
+#     #efficientnet = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_efficientnet_b0', pretrained=pretrained)
+    
+
+#     #utils = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_convnets_processing_utils')
+#     out = torch.nn.Linear(512, output_dim, bias=True)
+#     return efficientnet
+#     # efficientnet.eval().to(device)
+
+
+
+#     # TODO: Modify the final fully connected layer for CIFAR10
+#     num_ftrs = model.fc.in_features
+#     model.fc = nn.Linear(num_ftrs, num_classes) 
+

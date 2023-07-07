@@ -62,7 +62,9 @@ class CachedDataset(torch.utils.data.Dataset):
             target = np.array(target.values)
 
         if self.transform is not None:
+            # print(signal.shape)
             signal = self.transform(signal)
+            # print(signal.shape)
 
         if self.target_transform is not None:
             target = self.target_transform(target)

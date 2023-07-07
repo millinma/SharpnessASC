@@ -10,4 +10,4 @@
 # This activates the environment (given .envrc is in the current directory)
 direnv allow . && eval "\$(direnv export bash)"
 
-python Simon_Code/benchrunner.py --data-root /data/eihw-gpu5/milliman/DCASE/DCASE2020/metadata --features /data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/features.csv --feature_dir /data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/ --results-root /nas/staff/data_work/manuel/cloned_repos/visualisation/results --device cuda --num_gpus 1
+python Simon_Code/benchrunner.py --data-root /data/eihw-gpu5/milliman/DCASE/DCASE2020/metadata --features /data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/features.csv --feature_dir /data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/ --results-root /nas/staff/data_work/manuel/cloned_repos/visualisation/results/test/run05 --device cuda --num_gpus 1 --epochs 100 --dataset CIFAR10 --approach efficientnet_b0 --optimizer Adam 

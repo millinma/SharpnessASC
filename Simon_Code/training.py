@@ -4,7 +4,9 @@ from sincnet import (
 )
 from models import (
     Cnn10,
-    Cnn14
+    Cnn14,
+    create_ResNet50_model,
+    ModifiedEfficientNet
 )
 from datasets import (
     CachedDataset,
@@ -14,9 +16,15 @@ from utils import (
     disaggregated_evaluation,
     evaluate_categorical,
     transfer_features,
-    LabelEncoder
+    LabelEncoder,
+    get_output_dim,
+    get_df_from_dataset,
+    GrayscaleToRGB
 )
+#from ml_utils import get_sharpness
 from torch.utils.tensorboard import SummaryWriter
+import torchvision
+import torchvision.transforms as transforms
 import argparse
 import audtorch
 import numpy as np
@@ -29,7 +37,9 @@ import tqdm
 import yaml
 from KFACPytorch import KFACOptimizer, EKFACOptimizer
 from sam import SAM
+from calculate_different_sharpness_values import calculate_sharpness
 from gradient_descent_the_ultimate_optimizer.gdtuo import ModuleWrapper, NoOpOptimizer
+from torchinfo import summary
 
 import warnings
 # Ignore Using backward() UserWarning of gdtuo
@@ -118,7 +128,7 @@ def train_step_gdtuo(model,
 
 def train_step_kfac(model, optimizer, criterion, features, targets, device, _epoch, _batch):
     # * Train Step for (E)KFAC Optimizer
-    # ? Reference: https://github.com/alecwangcq/KFAC-Pytorch
+    # ? Reference: https://github.com/alecwangcq/KFAC-Pytorch    
     optimizer.zero_grad()
     output = model(transfer_features(features, device))
     targets = targets.to(device)
@@ -141,6 +151,11 @@ def train_step_kfac(model, optimizer, criterion, features, targets, device, _epo
 
 def train_step_normal(model, optimizer, criterion, features, targets, device):
     # * Train Step for Torch Base Optimizers
+    # print("-"*50)
+    # TODO: Remove this part. It's only for testing.
+    # sharp = get_sharpness(mode, train_dataset)
+    # print("Sharpness: ", sharp)
+    # print("Feature Shapes: ", features.shape)
     output = model(transfer_features(features, device))
     targets = targets.to(device)
     loss = criterion(output, targets)
@@ -179,190 +194,271 @@ def run_training(args):
     gen_seed = torch.Generator().manual_seed(args.seed)
     np.random.seed(args.seed)
     random.seed(args.seed)
+    device = args.device
+    epochs = args.epochs
     experiment_folder = args.results_root
     os.makedirs(experiment_folder, exist_ok=True)
+    ### DCASE
+    if args.dataset == 'DCASE2020':
+        def get_scene_category(x):
+            if x in [
+                'airport',
+                'shopping_mall',
+                'metro_station'
+            ]:
+                return 'indoor'
+            elif x in [
+                'park',
+                'public_square',
+                'street_pedestrian',
+                'street_traffic'
+            ]:
+                return 'outdoor'
+            elif x in [
+                'bus',
+                'metro',
+                'tram'
+            ]:
+                return 'transportation'
+            else:
+                raise NotImplementedError(f'{x} not supported.')
+        #print("-----------------hi---------------")
+        df_train = pd.read_csv(
+            os.path.join(
+                args.data_root,
+                'evaluation_setup',
+                'fold1_train.csv'
+            ), sep='\t').set_index('filename')
+        df_train['scene_category'] = df_train['scene_label'].apply(
+            get_scene_category)
+        df_train['city'] = [
+            os.path.basename(x).split('-')[1]
+            for x in df_train.index.get_level_values('filename')
+        ]
+        df_train['device'] = [
+            os.path.basename(x).split('-')[-1].split('.')[0]
+            for x in df_train.index.get_level_values('filename')
+        ]
+        
+        df_dev = pd.read_csv(
+            os.path.join(
+                args.data_root,
+                'evaluation_setup',
+                'fold1_evaluate.csv'
+            ), sep='\t').set_index('filename')
+        df_dev['scene_category'] = df_dev['scene_label'].apply(get_scene_category)
+        df_dev['city'] = [
+            os.path.basename(x).split('-')[1]
+            for x in df_dev.index.get_level_values('filename')
+        ]
+        df_dev['device'] = [
+            os.path.basename(x).split('-')[-1].split('.')[0]
+            for x in df_dev.index.get_level_values('filename')
+        ]
+        
+        df_test = pd.read_csv(
+            os.path.join(
+                args.data_root,
+                'evaluation_setup',
+                'fold1_evaluate.csv'
+            ), sep='\t').set_index('filename')
+        df_test['scene_category'] = df_test['scene_label'].apply(
+            get_scene_category)
+        df_test['city'] = [
+            os.path.basename(x).split('-')[1]
+            for x in df_test.index.get_level_values('filename')
+        ]
+        df_test['device'] = [
+            os.path.basename(x).split('-')[-1].split('.')[0]
+            for x in df_test.index.get_level_values('filename')
+        ]
 
-    def get_scene_category(x):
-        if x in [
-            'airport',
-            'shopping_mall',
-            'metro_station'
-        ]:
-            return 'indoor'
-        elif x in [
-            'park',
-            'public_square',
-            'street_pedestrian',
-            'street_traffic'
-        ]:
-            return 'outdoor'
-        elif x in [
-            'bus',
-            'metro',
-            'tram'
-        ]:
-            return 'transportation'
+        if args.category is not None:
+            df_train = df_train.loc[df_train['scene_category'] == args.category]
+            df_dev = df_dev.loc[df_dev['scene_category'] == args.category]
+            df_test = df_test.loc[df_test['scene_category'] == args.category]
+
+        if args.exclude_cities != "None":
+            df_train = df_train.loc[~df_train["city"].isin(args.exclude_cities)]
+
+        n_classes = len(df_train['scene_label'].unique())
+        encoder = LabelEncoder(
+            list(df_train['scene_label'].unique()))
+
+        features = pd.read_csv(args.features).set_index('filename')
+
+        # * custom feature path support
+        if args.custom_feature_path is not None:
+            features = replace_file_path(
+                features, "features", args.custom_feature_path)
+
+        db_args = {
+            'features': features,
+            'target_column': 'scene_label',
+            'target_transform': encoder.encode,
+            'feature_dir': args.feature_dir
+        }
+        
+        if args.approach == 'cnn14':
+            model = Cnn14(
+                output_dim=n_classes
+            )
+            db_class = CachedDataset
+            model.to_yaml(os.path.join(experiment_folder, 'model.yaml'))
+            criterion = torch.nn.CrossEntropyLoss()
+        elif args.approach == 'cnn10':
+            model = Cnn10(
+                output_dim=n_classes
+            )
+            db_class = CachedDataset
+            model.to_yaml(os.path.join(experiment_folder, 'model.yaml'))
+            criterion = torch.nn.CrossEntropyLoss()
+        elif args.approach.startswith("efficientnet"):
+            model = ModifiedEfficientNet(n_classes, scaling_type=args.approach, pretrained=args.pretrained)
+            db_class = CachedDataset
+            # db_args['transform'] = transforms.Compose([GrayscaleToRGB(), transforms.ToTensor()])
+            db_args['transform'] = transforms.Compose([GrayscaleToRGB()])
+            # db_args['transform'] = torch.nn.Sequential(GrayscaleToRGB())
+            #db_args['transform'] = torch.nn.Sequential(torchvision.transforms.v2.Grayscale(num_output_channels=3))
+
+            # model.to_yaml(os.path.join(experiment_folder, 'model.yaml'))
+            criterion = torch.nn.CrossEntropyLoss()
+        elif args.approach == 'sincnet':
+            with open('sincnet.yaml', 'r') as fp:
+                options = yaml.load(fp, Loader=yaml.Loader)
+
+            feature_config = options['windowing']
+            wlen = int(feature_config['fs'] * feature_config['cw_len'] / 1000.00)
+            wshift = int(feature_config['fs'] *
+                        feature_config['cw_shift'] / 1000.00)
+
+            cnn_config = options['cnn']
+            cnn_config['input_dim'] = wlen
+            cnn_config['fs'] = feature_config['fs']
+            cnn = SincNet(cnn_config)
+
+            mlp_1_config = options['dnn']
+            mlp_1_config['input_dim'] = cnn.out_dim
+            mlp_1 = MLP(mlp_1_config)
+
+            mlp_2_config = options['class']
+            mlp_2_config['input_dim'] = mlp_1_config['fc_lay'][-1]
+            mlp_2 = MLP(mlp_2_config)
+            model = Model(
+                cnn,
+                mlp_1,
+                mlp_2,
+                wlen,
+                wshift
+            )
+            x = torch.rand(2, wlen)
+            model.train()
+            x = torch.rand(1, 44100)
+            model.eval()
+            # print("EVAL TEST:")
+            # # print(model(x).shape)
+            # print()
+            with open(os.path.join(experiment_folder, 'sincnet.yaml'), 'w') as fp:
+                yaml.dump(options, fp)
+            db_class = WavDataset
+            df_train = fix_index(df_train, args.data_root)
+            df_dev = fix_index(df_dev, args.data_root)
+            df_test = fix_index(df_test, args.data_root)
+            db_args['transform'] = audtorch.transforms.RandomCrop(wlen)
+            criterion = torch.nn.NLLLoss()
+
+        train_dataset = db_class(
+            df_train,
+            **db_args
+        )
+        dev_dataset = db_class(
+        df_dev,
+        **db_args
+        )
+
+        test_dataset = db_class(
+            df_test,
+            **db_args
+        )
+    elif args.dataset == "CIFAR10":
+        # Parameters for development set
+        devel_percentage = 0.2
+        if args.approach in ["cnn10", "cnn14"]:
+            transform = torchvision.transforms.Compose(
+                [torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                torchvision.transforms.Resize((64,64))
+                #torchvision.transforms.Resize((1001,64))
+                ])
         else:
-            raise NotImplementedError(f'{x} not supported.')
-    #print("-----------------hi---------------")
-    df_train = pd.read_csv(
-        os.path.join(
-            args.data_root,
-            'evaluation_setup',
-            'fold1_train.csv'
-        ), sep='\t').set_index('filename')
-    df_train['scene_category'] = df_train['scene_label'].apply(
-        get_scene_category)
-    df_train['city'] = [
-        os.path.basename(x).split('-')[1]
-        for x in df_train.index.get_level_values('filename')
-    ]
-    df_train['device'] = [
-        os.path.basename(x).split('-')[-1].split('.')[0]
-        for x in df_train.index.get_level_values('filename')
-    ]
-    
-    df_dev = pd.read_csv(
-        os.path.join(
-            args.data_root,
-            'evaluation_setup',
-            'fold1_evaluate.csv'
-        ), sep='\t').set_index('filename')
-    df_dev['scene_category'] = df_dev['scene_label'].apply(get_scene_category)
-    df_dev['city'] = [
-        os.path.basename(x).split('-')[1]
-        for x in df_dev.index.get_level_values('filename')
-    ]
-    df_dev['device'] = [
-        os.path.basename(x).split('-')[-1].split('.')[0]
-        for x in df_dev.index.get_level_values('filename')
-    ]
-    
-    df_test = pd.read_csv(
-        os.path.join(
-            args.data_root,
-            'evaluation_setup',
-            'fold1_evaluate.csv'
-        ), sep='\t').set_index('filename')
-    df_test['scene_category'] = df_test['scene_label'].apply(
-        get_scene_category)
-    df_test['city'] = [
-        os.path.basename(x).split('-')[1]
-        for x in df_test.index.get_level_values('filename')
-    ]
-    df_test['device'] = [
-        os.path.basename(x).split('-')[-1].split('.')[0]
-        for x in df_test.index.get_level_values('filename')
-    ]
+            transform = torchvision.transforms.Compose(
+                [torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                ])
+        
+        train_dev_dataset = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                            download=True, transform=transform)
+        
+        generator1 = torch.Generator().manual_seed(42)
+        train_dataset, dev_dataset = torch.utils.data.random_split(train_dev_dataset, [1 - devel_percentage, devel_percentage], generator=generator1)
+        
+        
+        test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False,
+                                       download=True, transform=transform)
 
-    if args.category is not None:
-        df_train = df_train.loc[df_train['scene_category'] == args.category]
-        df_dev = df_dev.loc[df_dev['scene_category'] == args.category]
-        df_test = df_test.loc[df_test['scene_category'] == args.category]
+        df_dev = get_df_from_dataset(dev_dataset)
+        df_test = get_df_from_dataset(test_dataset)
+        
+        encoder = LabelEncoder(
+            list(test_dataset.class_to_idx.keys()))
+        n_classes = len(test_dataset.class_to_idx.keys())
+        input_channels = 3
 
-    if args.exclude_cities != "None":
-        df_train = df_train.loc[~df_train["city"].isin(args.exclude_cities)]
-
-    n_classes = len(df_train['scene_label'].unique())
-    encoder = LabelEncoder(
-        list(df_train['scene_label'].unique()))
-
-    features = pd.read_csv(args.features).set_index('filename')
-
-    # * custom feature path support
-    if args.custom_feature_path is not None:
-        features = replace_file_path(
-            features, "features", args.custom_feature_path)
-
-    db_args = {
-        'features': features,
-        'target_column': 'scene_label',
-        'target_transform': encoder.encode,
-        'feature_dir': args.feature_dir
-    }
-
-    if args.approach == 'cnn14':
-        model = Cnn14(
-            output_dim=n_classes
-        )
-        db_class = CachedDataset
-        model.to_yaml(os.path.join(experiment_folder, 'model.yaml'))
-        criterion = torch.nn.CrossEntropyLoss()
-    elif args.approach == 'cnn10':
-        model = Cnn10(
-            output_dim=n_classes
-        )
-        db_class = CachedDataset
-        model.to_yaml(os.path.join(experiment_folder, 'model.yaml'))
-        criterion = torch.nn.CrossEntropyLoss()
-    elif args.approach == 'sincnet':
-        with open('sincnet.yaml', 'r') as fp:
-            options = yaml.load(fp, Loader=yaml.Loader)
-
-        feature_config = options['windowing']
-        wlen = int(feature_config['fs'] * feature_config['cw_len'] / 1000.00)
-        wshift = int(feature_config['fs'] *
-                     feature_config['cw_shift'] / 1000.00)
-
-        cnn_config = options['cnn']
-        cnn_config['input_dim'] = wlen
-        cnn_config['fs'] = feature_config['fs']
-        cnn = SincNet(cnn_config)
-
-        mlp_1_config = options['dnn']
-        mlp_1_config['input_dim'] = cnn.out_dim
-        mlp_1 = MLP(mlp_1_config)
-
-        mlp_2_config = options['class']
-        mlp_2_config['input_dim'] = mlp_1_config['fc_lay'][-1]
-        mlp_2 = MLP(mlp_2_config)
-        model = Model(
-            cnn,
-            mlp_1,
-            mlp_2,
-            wlen,
-            wshift
-        )
-        x = torch.rand(2, wlen)
-        model.train()
-        x = torch.rand(1, 44100)
-        model.eval()
-        print("EVAL TEST:")
-        print(model(x).shape)
-        print()
-        with open(os.path.join(experiment_folder, 'sincnet.yaml'), 'w') as fp:
-            yaml.dump(options, fp)
-        db_class = WavDataset
-        df_train = fix_index(df_train, args.data_root)
-        df_dev = fix_index(df_dev, args.data_root)
-        df_test = fix_index(df_test, args.data_root)
-        db_args['transform'] = audtorch.transforms.RandomCrop(wlen)
-        criterion = torch.nn.NLLLoss()
-
+        # So far only CNN14 and CNN10 are available
+        if args.approach == 'cnn14':
+            model = Cnn14(
+                output_dim=n_classes,
+                in_channels=input_channels
+            )
+            #db_class = CachedDataset
+            model.to_yaml(os.path.join(experiment_folder, 'model.yaml'))
+        elif args.approach == 'cnn10':
+            model = Cnn10(
+                output_dim=n_classes,
+                in_channels=input_channels
+            )
+            #db_class = CachedDataset
+            model.to_yaml(os.path.join(experiment_folder, 'model.yaml'))
+        elif args.approach == 'ResNet50':
+            model = create_ResNet50_model(n_classes)
+        elif args.approach.startswith("efficientnet"):
+            model = ModifiedEfficientNet(n_classes, scaling_type=args.approach, pretrained=args.pretrained)
+    # Print a summary using torchinfo (uncomment for actual output)
+    criterion = torch.nn.CrossEntropyLoss()        
+    print(args.approach)
     if args.state is not None:
         initial_state = torch.load(args.state)
         model.load_state_dict(
             initial_state,
             strict=False
-        )
-
-    train_dataset = db_class(
-        df_train,
-        **db_args
-    )
+            )
+    
     x, y = train_dataset[0]
+    x = np.expand_dims(x, axis=0)
+    print(x.shape)
+    summary(model=model, 
+        input_size=(x.shape), # make sure this is "input_size", not "input_shape"
+        # col_names=["input_size"], # uncomment for smaller output
+        col_names=["input_size", "output_size", "num_params", "trainable"],
+        col_width=20,
+        row_settings=["var_names"]
+    )
+    # print("-" * 50)
+    # personalized_plot_model(model)
 
     if args.approach == 'sincnet':
         db_args.pop('transform')
-    dev_dataset = db_class(
-        df_dev,
-        **db_args
-    )
-
-    test_dataset = db_class(
-        df_test,
-        **db_args
-    )
+    
     # create DataLoaders
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
@@ -379,6 +475,9 @@ def run_training(args):
         num_workers=4,
         generator=gen_seed
     )
+    
+
+    # df_dev = pd.DataFrame(dev_dataset.dataset)
 
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
@@ -387,6 +486,12 @@ def run_training(args):
         num_workers=4,
         generator=gen_seed
     )
+
+    accuracy_history = []
+    uar_history = []
+    f1_history = []
+    train_loss_history = []
+    valid_loss_history = []
 
     if not os.path.exists(os.path.join(experiment_folder, 'state.pth.tar')):
 
@@ -435,19 +540,18 @@ def run_training(args):
         else:
             sheduler = args.sheduler_wrapper.create(optimizer)
 
-        device = args.device
-        epochs = args.epochs
+        
 
         max_metric = -1
         best_epoch = 0
         best_state = None
         best_results = None
 
-        accuracy_history = []
-        uar_history = []
-        f1_history = []
-        train_loss_history = []
-        valid_loss_history = []
+        # accuracy_history = []
+        # uar_history = []
+        # f1_history = []
+        # train_loss_history = []
+        # valid_loss_history = []
 
         for epoch in range(epochs):
             model.to(device)
@@ -490,12 +594,21 @@ def run_training(args):
                         global_step=epoch * len(train_loader) + index
                     )
                 _loss_history.append(loss)
+                
             train_loss = sum(_loss_history)/len(_loss_history)
+            # print(train_loss)
             if "train_timer" in args:
                 args.train_timer.stop()
 
             if "valid_timer" in args:
                 args.valid_timer.start()
+            ##  Sharpness
+
+            # sharpness_values = calculate_sharpness(model, device, train_loader, transfer_features, args.disable_progress_bar, criterion)
+            # print(sharpness_values)
+            
+
+
 
             # dev set evaluation
             results, _, predictions, outputs, valid_loss = evaluate_categorical(
@@ -515,26 +628,30 @@ def run_training(args):
                 encoder.decode)
             results_df.reset_index().to_csv(os.path.join(epoch_folder, 'dev.csv'), index=False)
             np.save(os.path.join(epoch_folder, 'outputs.npy'), outputs)
-            logging_results = disaggregated_evaluation(
-                results_df,
-                df_dev,
-                'scene_label',
-                ['scene_category', 'city', 'device'],
-                'categorical'
-            )
-            with open(os.path.join(epoch_folder, 'dev.yaml'), 'w') as fp:
-                yaml.dump(logging_results, fp)
-            for metric in logging_results.keys():
-                writer.add_scalars(
-                    f'dev/{metric}',
-                    logging_results[metric],
-                    (epoch + 1) * len(train_loader)
+            if args.dataset == "DCASE2020":
+                # print(results_df)
+                logging_results = disaggregated_evaluation(
+                    results_df,
+                    df_dev,
+                    'scene_label',
+                    ['scene_category', 'city', 'device'],
+                    'categorical'
                 )
+
+                with open(os.path.join(epoch_folder, 'dev.yaml'), 'w') as fp:
+                    yaml.dump(logging_results, fp)
+                for metric in logging_results.keys():
+                    writer.add_scalars(
+                        f'dev/{metric}',
+                        logging_results[metric],
+                        (epoch + 1) * len(train_loader)
+                    )
 
             torch.save(model.cpu().state_dict(), os.path.join(
                 epoch_folder, 'state.pth.tar'))
             results["train_loss"] = train_loss
             results["val_loss"] = valid_loss
+            
             print(f'Dev results at epoch {epoch+1}:\n{yaml.dump(results)}')
             # save accuracy metric
             accuracy_history.append(results["ACC"])
@@ -551,7 +668,24 @@ def run_training(args):
             # plateau_scheduler.step(results['ACC'])
             if "valid_timer" in args:
                 args.valid_timer.stop()
+        train_results, _, _, _, train_loss = evaluate_categorical(
+                model,
+                device,
+                train_loader,
+                transfer_features,
+                args.disable_progress_bar,
+                criterion
+            )
+        print(f'Final Train results:\n {yaml.dump(train_results)}')
+        print(f'Final Train loss:\n {yaml.dump(train_loss)}')
+        #results["sharpness_value"] = sharpness_values
+        print("Final Train results: ", train_results)
+        print("Final Train loss: ", train_loss)
 
+        sharpness_values = calculate_sharpness(model, device, train_loader, transfer_features, args.disable_progress_bar, criterion)
+        print(f'Sharpness:\n{yaml.dump(results)}')
+        #results["sharpness_value"] = sharpness_values
+        print("Sharpness Value: ", sharpness_values)
         print(
             f'Best dev results found at epoch {best_epoch+1}:\n{yaml.dump(best_results)}')
         best_results['Epoch'] = best_epoch + 1
@@ -562,38 +696,44 @@ def run_training(args):
         best_state = torch.load(os.path.join(
             experiment_folder, 'state.pth.tar'))
         print('Training already run')
-
-    if not os.path.exists(os.path.join(experiment_folder, 'test_holistic.yaml')):
-        model.load_state_dict(best_state)
-        test_results, targets, predictions, outputs, valid_loss = evaluate_categorical(
-            model, device, test_loader, transfer_features, args.disable_progress_bar, criterion)
-        print(f'Best test results:\n{yaml.dump(test_results)}')
-        torch.save(best_state, os.path.join(
-            experiment_folder, 'state.pth.tar'))
-        np.save(os.path.join(experiment_folder, 'targets.npy'), targets)
-        np.save(os.path.join(experiment_folder, 'outputs.npy'), outputs)
-        np.save(os.path.join(experiment_folder, 'predictions.npy'), outputs)
-        results_df = pd.DataFrame(
-            index=df_test.index,
-            data=predictions,
-            columns=['predictions']
-        )
-        results_df['predictions'] = results_df['predictions'].apply(
-            encoder.decode)
-        results_df.reset_index().to_csv(os.path.join(epoch_folder, 'test.csv'), index=False)
-        with open(os.path.join(experiment_folder, 'test.yaml'), 'w') as fp:
-            yaml.dump(test_results, fp)
-        logging_results = disaggregated_evaluation(
-            results_df,
-            df_test,
-            'scene_label',
-            ['scene_category', 'city', 'device'],
-            'categorical'
-        )
-        with open(os.path.join(experiment_folder, 'test_holistic.yaml'), 'w') as fp:
-            yaml.dump(logging_results, fp)
-    else:
-        print('Evaluation already run')
+        epoch_folder = os.path.join(
+                experiment_folder,
+                f'Epoch_{epochs}'
+            )
+    if args.dataset == "DCASE2020": 
+        print("saving to: ", os.path.join(experiment_folder, 'test_holistic.yaml'))
+        if not os.path.exists(os.path.join(experiment_folder, 'test_holistic.yaml')):
+            model.load_state_dict(best_state)
+            test_results, targets, predictions, outputs, valid_loss = evaluate_categorical(
+                model, device, test_loader, transfer_features, args.disable_progress_bar, criterion)
+            print(f'Best test results:\n{yaml.dump(test_results)}')
+            torch.save(best_state, os.path.join(
+                experiment_folder, 'state.pth.tar'))
+            np.save(os.path.join(experiment_folder, 'targets.npy'), targets)
+            np.save(os.path.join(experiment_folder, 'outputs.npy'), outputs)
+            np.save(os.path.join(experiment_folder, 'predictions.npy'), outputs)
+            results_df = pd.DataFrame(
+                index=df_test.index,
+                data=predictions,
+                columns=['predictions']
+            )
+            results_df['predictions'] = results_df['predictions'].apply(
+                encoder.decode)
+            results_df.reset_index().to_csv(os.path.join(epoch_folder, 'test.csv'), index=False)
+            with open(os.path.join(experiment_folder, 'test.yaml'), 'w') as fp:
+                yaml.dump(test_results, fp)
+                logging_results = disaggregated_evaluation(
+                    results_df,
+                    df_test,
+                    'scene_label',
+                    ['scene_category', 'city', 'device'],
+                    'categorical'
+                )
+                with open(os.path.join(experiment_folder, 'test_holistic.yaml'), 'w') as fp:
+                    yaml.dump(logging_results, fp)
+        else:
+            print('Evaluation already run')
+            # in case we don't have any training the benchrunner doesn't make a lot of sense.
 
     return accuracy_history, uar_history, f1_history, train_loss_history, valid_loss_history
 

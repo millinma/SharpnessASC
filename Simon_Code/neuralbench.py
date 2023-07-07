@@ -123,15 +123,17 @@ class ParallelActor:
                     features=self.features,
                     custom_feature_path=self.custom_feature_path,
                     state=self.state,
+                    # TODO: Change info here!
                     approach=experiment[0],
                     category=experiment[1],
-                    batch_size=experiment[2],
-                    epochs=experiment[3],
-                    learning_rate=experiment[4],
-                    seed=experiment[5],
-                    optimizer=experiment[6],
-                    sheduler_wrapper=experiment[7],
-                    exclude_cities=experiment[8],
+                    dataset=experiment[2],
+                    batch_size=experiment[3],
+                    epochs=experiment[4],
+                    learning_rate=experiment[5],
+                    seed=experiment[6],
+                    optimizer=experiment[7],
+                    sheduler_wrapper=experiment[8],
+                    exclude_cities=experiment[9],
                     base_folder=self.base_folder,
                     disable_progress_bar=self.disable_progress_bar,
                 )
@@ -157,6 +159,9 @@ class ModelEnum(Enum):
     CNN14 = "cnn14"
     CNN10 = "cnn10"
     SINCNET = "sincnet"
+    ResNet50 = "resnet50"
+    Efficientnet_b0 = "efficientnet-b0"
+    Efficientnet_b4 = "efficientnet-b4"
 
 
 class DataEnum(Enum):
@@ -412,11 +417,13 @@ class ShedulerWrapper:
 
 class ExcludeSearch:
     def __init__(self,
-                 approach: ModelEnum = "ignore",
+                 dataset: str = "ignore",
+                 approach: str = "ignore",
                  category: DataEnum = "ignore",
                  batch_size: int = "ignore",
                  epochs: int = "ignore",
                  learning_rate: float = "ignore",
+                 pretrained: bool = "ignore",
                  seed: int = "ignore",
                  optimizer: Union[OptimizerEnum,
                                   OptimizerWrapper, GDTUOWrapper] = "ignore",
@@ -439,11 +446,13 @@ class ExcludeSearch:
             sheduler_wrapper (Union[ShedulerWrapper, List[ShedulerWrapper]], optional): Sheduler or List of Shedulers to be excluded. Defaults to "ignore".
         """
         self.match_cases = [
+            dataset,
             approach,
             category,
             batch_size,
             epochs,
             learning_rate,
+            pretrained,
             seed,
             optimizer,
             sheduler_wrapper
@@ -481,11 +490,13 @@ class NeuralBench():
                  results_path: str = None,
                  custom_feature_path: str = None,
                  state: str = None,
-                 approach: ModelEnum = ModelEnum.CNN10,
+                 approach: str = "cnn10",
                  category: DataEnum = DataEnum.NONE,
+                 dataset: str = "DCASE2020",
                  batch_size: int = 32,
                  epochs: int = 60,
                  learning_rate: float = 0.001,
+                 pretrained: bool = False,
                  seed: int = 0,
                  optimizer: Union[OptimizerEnum,
                                   OptimizerWrapper, GDTUOWrapper] = OptimizerEnum.SGD,
@@ -506,6 +517,7 @@ class NeuralBench():
             state (str,optional): Optional initial state file path. Defaults to None.
             approach (ModelEnum, optional): Model to be used for training. Defaults to ModelEnum.CNN10.
             category (DataEnum, optional): Data category to be used for training. Defaults to DataEnum.NONE.
+            dataset (str, optional): Dataset/Task
             batch_size (int, optional): Batch size to be used for training. Defaults to 32.
             epochs (int, optional): Training epochs. Defaults to 60.
             learning_rate (float, optional): Learning rate for optimizer. Defaults to 0.001.
@@ -534,11 +546,15 @@ class NeuralBench():
         self.args.results_path = results_path
         self.args.custom_feature_path = base_folder+custom_feature_path
         self.args.state = state
-        self.args.approach = approach.value
+        self.args.approach = approach
         self.args.category = category.value
+        self.args.dataset = dataset
         self.args.batch_size = batch_size
         self.args.epochs = epochs
         self.args.learning_rate = learning_rate
+        self.args.pretrained = pretrained
+        print("Neural BenchS")
+        print(pretrained)
         self.args.seed = seed
         self.args.optimizer = optimizer.value if isinstance(
             optimizer, OptimizerEnum) else optimizer
@@ -561,7 +577,9 @@ class NeuralBench():
             self.args.sheduler_name = "None"
 
         if run_name is None:
-            run_name = str(self.args.approach)+"_" +\
+            run_name = str(self.args.dataset)+"_" +\
+                str(self.args.approach)+"_" +\
+                "pretrained-" + str(self.args.pretrained)+"_" +\
                 str(self.args.category)+"_" +\
                 str(self.args.optimizer_name)+"_" +\
                 str(self.args.learning_rate).replace(".", "-")+"_" +\
@@ -570,6 +588,9 @@ class NeuralBench():
                 str(self.args.seed)+"_" +\
                 str(self.args.sheduler_name)+"_" +\
                 str("-".join(self.args.exclude_cities))
+        print("-"*50)
+        print("pretrained")
+        print(self.args.pretrained)
         self.run_name = run_name
         if self.args.results_path == None:
             self.args.results_path = ""
@@ -603,6 +624,7 @@ class NeuralBench():
         plt.clf()
 
     def export_metadata(self):
+        print("Save Metdata")
         metadata = {
             "min train loss": min(self.train_loss_history),
             "min valid loss": min(self.valid_loss_history),
@@ -640,6 +662,7 @@ class NeuralBench():
             default_flow_style = None
         else:
             default_flow_style = False
+        #print(os.path.join(self.args.results_root, "metadata.yaml"))
         with open(os.path.join(self.args.results_root, "metadata.yaml"), "w") as f:
             yaml.dump(metadata, f, default_flow_style=default_flow_style)
 
@@ -661,7 +684,9 @@ class NeuralBench():
             self.args.device, str) else torch.cuda.get_device_name(self.args.device))
         print("state:\t\t", self.args.state)
         print("approach:\t", self.args.approach)
+        print("pretrained:\t", self.args.pretrained)
         print("category:\t", self.args.category)
+        print("dataset:\t", self.args.dataset)
         print("batch_size:\t", self.args.batch_size)
         print("epochs:\t\t", self.args.epochs)
         print("learning_rate:\t", self.args.learning_rate)
@@ -673,8 +698,11 @@ class NeuralBench():
         print("")
         self.accuracy_history, self.uar_history, self.f1_history, self.train_loss_history, self.valid_loss_history = run_training(
             self.args)
-        self.export_metadata()
-        self.plot_accuracy()
+        print("Accuracy history!!!!")
+        print(self.accuracy_history)
+        if self.accuracy_history != []:
+            self.export_metadata()
+            self.plot_accuracy()
         return self.accuracy_history, self.uar_history, self.f1_history, self.train_loss_history, self.valid_loss_history, self.run_name
 
 
@@ -689,10 +717,12 @@ class GridSearchModule:
                  state: str = None,
                  approach: List[ModelEnum] = [ModelEnum.CNN10],
                  category: List[DataEnum] = [DataEnum.NONE],
+                 dataset: List[str] = ["DCASE2020"],
                  batch_size: List[int] = [32],
                  epochs: List[int] = [50],
                  learning_rate: List[float] = [0.001],
                  seed: List[int] = 0,
+                 pretrained: List[bool] = [False],
                  optimizer: List[Union[OptimizerEnum, OptimizerWrapper, GDTUOWrapper]] = [
                      OptimizerEnum.SGD],
                  sheduler_wrapper: List[Union[ShedulerWrapper,
@@ -713,6 +743,7 @@ class GridSearchModule:
             state (str, optional): _description_. Optional initial state file path. Defaults to None.
             approach (List[ModelEnum], optional): List of model to be used for grid search. Defaults to [ModelEnum.CNN10].
             category (List[DataEnum], optional): List of data categories to be used for grid search. Defaults to [DataEnum.NONE].
+            dataset (List[str], optional): List of datasets to be used for grid search. Defaults to ["DCASE2020"].
             batch_size (List[int], optional): List of batch sizes to be used for grid search. Defaults to [32].
             epochs (List[int], optional): List of epochs to be used for grid search. Defaults to [50].
             learning_rate (List[float], optional): List of learning rates to be used for grid search. Defaults to [0.001].
@@ -734,20 +765,25 @@ class GridSearchModule:
         self.state = state
         self.approach = approach  # * grid
         self.category = category  # * grid
+        self.dataset = dataset # *grid
         self.batch_size = batch_size  # * grid
         self.epochs = epochs  # * grid
         self.learning_rate = learning_rate  # * grid
         self.seed = seed  # * grid
         self.optimizer = optimizer  # * grid
+        self.pretrained = pretrained # * grid
+        print("Grid search module")
+        print(pretrained)
         self.sheduler_wrapper = sheduler_wrapper  # * grid
         self.exclude_cities = exclude_cities  # * grid
         self.base_folder = base_folder
         self.disable_progress_bar = disable_progress_bar
         self.grid = [
-            self.approach, self.category, self.batch_size,
+            self.dataset, self.category, self.approach, self.batch_size,
             self.epochs, self.learning_rate, self.seed,
-            self.optimizer, self.sheduler_wrapper, exclude_cities
+            self.optimizer, self.pretrained, self.sheduler_wrapper, exclude_cities
         ]
+        print(self.grid)
 
         os.makedirs(os.path.join(self.base_folder,
                     self.results_path), exist_ok=True)
@@ -839,8 +875,12 @@ class GridSearchModule:
             run_names, histories = zip(*run)
             run_name = run_names[0].replace(
                 "_"+run_names[0].split("_")[-2], "")
+            print("-"*50)
+            # print("Histories")
+            # print(histories)
             run_name = "_".join(
                 list(filter(lambda a: a != "None", run_name.split("_"))))
+            # print(histories)
             y_mean = np.mean(histories, axis=0)
             y_std = np.std(histories, axis=0) * std_scale
             plt.fill_between(range(1, len(histories[0])+1), y_mean-y_std, y_mean+y_std,
@@ -868,11 +908,13 @@ class GridSearchModule:
             "max valid f1": max_f1,
             "device": self.device,
             "state": self.state,
-            "approach": [a.value for a in self.approach],
+            "approach": self.approach,
             "category": [c.value for c in self.category],
+            "dataset": self.dataset,
             "batch_size": self.batch_size,
             "epochs": self.epochs,
             "learning_rate": self.learning_rate,
+            "pretrained": self.pretrained,
             "seed": self.seed,
             "exclude_cities": self.exclude_cities,
         }
@@ -919,6 +961,7 @@ class GridSearchModule:
     def get_best_run(self, best_type="accuaracy"):
         assert best_type in ["accuaracy", "uar", "f1", "loss"]
         best_fn = np.argmax
+        print(self.accuracy_history)
         if best_type == "loss":
             best_fn = np.argmin
             history = self.valid_loss_history
@@ -950,33 +993,44 @@ class GridSearchModule:
                 features=self.features,
                 custom_feature_path=self.custom_feature_path,
                 state=self.state,
-                approach=experiment[0],
+                dataset=experiment[0],
                 category=experiment[1],
-                batch_size=experiment[2],
-                epochs=experiment[3],
-                learning_rate=experiment[4],
-                seed=experiment[5],
-                optimizer=experiment[6],
-                sheduler_wrapper=experiment[7],
-                exclude_cities=experiment[8],
+                approach=experiment[2],
+                batch_size=experiment[3],
+                epochs=experiment[4],
+                learning_rate=experiment[5],
+                seed=experiment[6],
+                optimizer=experiment[7],
+                pretrained=experiment[8],
+                sheduler_wrapper=experiment[9],
+                exclude_cities=experiment[10],
                 base_folder=self.base_folder,
                 disable_progress_bar=self.disable_progress_bar,
             )
-            try:
-                accuracy_history, uar_history, f1_history, train_loss_history, valid_loss_history, run_name_history = run.run()
-                self.accuracy_history.append(accuracy_history)
-                self.uar_history.append(uar_history)
-                self.f1_history.append(f1_history)
-                self.train_loss_history.append(train_loss_history)
-                self.valid_loss_history.append(valid_loss_history)
-                self.run_name_history.append(run_name_history)
-                del accuracy_history, uar_history, f1_history, train_loss_history, valid_loss_history, run_name_history
-            except torch.cuda.OutOfMemoryError:
-                log_str = f"\nCUDA: Out of Memory in run {run_count}/{str(len(self.permutations))} runs.\nTimestamp:"
-                logging.log(level=logging.CRITICAL, msg=log_str)
-            except BaseException as e:
-                log_str = f"\nException in run {run_count}/{str(len(self.permutations))} runs.\nError: {e}\nTimestamp:"
-                logging.log(level=logging.CRITICAL, msg=log_str)
+            # TODO: for the end; Get back the try except block 
+            accuracy_history, uar_history, f1_history, train_loss_history, valid_loss_history, run_name_history = run.run()
+            self.accuracy_history.append(accuracy_history)
+            self.uar_history.append(uar_history)
+            self.f1_history.append(f1_history)
+            self.train_loss_history.append(train_loss_history)
+            self.valid_loss_history.append(valid_loss_history)
+            self.run_name_history.append(run_name_history)
+            del accuracy_history, uar_history, f1_history, train_loss_history, valid_loss_history, run_name_history
+            # try:
+            #     accuracy_history, uar_history, f1_history, train_loss_history, valid_loss_history, run_name_history = run.run()
+            #     self.accuracy_history.append(accuracy_history)
+            #     self.uar_history.append(uar_history)
+            #     self.f1_history.append(f1_history)
+            #     self.train_loss_history.append(train_loss_history)
+            #     self.valid_loss_history.append(valid_loss_history)
+            #     self.run_name_history.append(run_name_history)
+            #     del accuracy_history, uar_history, f1_history, train_loss_history, valid_loss_history, run_name_history
+            # except torch.cuda.OutOfMemoryError:
+            #     log_str = f"\nCUDA: Out of Memory in run {run_count}/{str(len(self.permutations))} runs.\nTimestamp:"
+            #     logging.log(level=logging.CRITICAL, msg=log_str)
+            # except BaseException as e:
+            #     log_str = f"\nException in run {run_count}/{str(len(self.permutations))} runs.\nError: {e}\nTimestamp:"
+            #     logging.log(level=logging.CRITICAL, msg=log_str)
             del run
             gc.collect()
             torch.cuda.empty_cache()
@@ -1061,9 +1115,10 @@ class PostProcessing:
             3: "learning_rate",
             4: "batch_size",
             5: "epochs",
-            6: "seed",
-            7: "sheduler_wrapper",
-            8: "exclude_cities",
+            6: "pretrained",
+            7: "seed",
+            8: "sheduler_wrapper",
+            9: "exclude_cities",
         }, inplace=True)
 
         df = df.astype({
@@ -1074,6 +1129,7 @@ class PostProcessing:
             "learning_rate": "string",
             "batch_size": "string",
             "epochs": "string",
+            "pretrained": "string",
             "seed": "string",
             "sheduler_wrapper": "string",
             "exclude_cities": "string",
@@ -1081,7 +1137,7 @@ class PostProcessing:
         self.runs_history = df
         self.df = df
 
-    def export_csv(self, export_name: str = "grid", acc_type: str = "accuracy"):
+    def export_csv(self, args, export_name: str = "grid", acc_type: str = "accuracy"):
         self.runs_history = self.df
         disagg_accuracies = ["all", "indoor", "transportation", "outdoor", "barcelona", "helsinki", "lisbon", "london", "lyon", "milan", "paris", "prague", "stockholm", "vienna", "a", "b",
                              "c", "s1", "s2", "s3", "s4", "s5", "s6"]
@@ -1091,24 +1147,32 @@ class PostProcessing:
         accs = {k: [] for k in disagg_accuracies}
         mtt = []
         mvt = []
+        # print("Runns overview!")
+        # print(self.runs_history["name"].tolist())
         for run in self.runs_history["name"].tolist():
+            "grid search folder"
+            # print(self.gridsearch.base_folder)
+            # print(self.gridsearch.results_path)
+            # print(run)
+
             _base = os.path.join(
                 self.gridsearch.base_folder,
                 self.gridsearch.results_path,
                 run
             )
-            with open(os.path.join(_base, "test_holistic.yaml"), "r") as f:
-                run_accs = yaml.safe_load(f)
-            run_accs = run_accs[yaml_acc_type]
-            for acc in disagg_accuracies:
-                accs[acc].append(run_accs[acc])
+            if args.dataset == "DCASE2020":
+                with open(os.path.join(_base, "test_holistic.yaml"), "r") as f:
+                    run_accs = yaml.safe_load(f)
+                run_accs = run_accs[yaml_acc_type]
+                for acc in disagg_accuracies:
+                    accs[acc].append(run_accs[acc])
             with open(os.path.join(_base, "metadata.yaml"), "r") as f:
                 metadata = yaml.safe_load(f)
             mtt.append(metadata["mean train time"])
             mvt.append(metadata["mean valid time"])
-
-        for acc in disagg_accuracies:
-            self.runs_history[acc] = accs[acc]
+        if args.dataset == "DCASE2020":
+            for acc in disagg_accuracies:
+                self.runs_history[acc] = accs[acc]
         self.runs_history["mtt"] = mtt
         self.runs_history["mvt"] = mvt
         _export_path = os.path.join(
