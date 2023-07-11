@@ -33,6 +33,7 @@ import pandas as pd
 import random
 import shutil
 import torch
+import copy
 import tqdm
 import yaml
 from KFACPytorch import KFACOptimizer, EKFACOptimizer
@@ -310,6 +311,19 @@ def run_training(args):
             model = Cnn10(
                 output_dim=n_classes
             )
+            # TODO: Change here!
+            # if args.pretrained:
+            if args.pretrained:
+                # model_old = copy.deepcopy(model)
+                # sd = model_old.state_dict()
+                # for params in sd:
+                #     print(params, sd[params])   
+                checkpoint = torch.load(args.pretrained_dir + "Cnn10_mAP=0.380.pth", map_location=torch.device(args.device))
+                state_dict = checkpoint['model']
+                model.load_state_dict(state_dict, strict=False)
+                # sd2 = model.state_dict()
+                # for params in sd2:
+                #     print(params, sd2[params])   
             db_class = CachedDataset
             model.to_yaml(os.path.join(experiment_folder, 'model.yaml'))
             criterion = torch.nn.CrossEntropyLoss()

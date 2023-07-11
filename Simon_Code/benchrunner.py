@@ -39,6 +39,7 @@ def bench_setup_grid_1(args):
         #features="mel_spectrograms/features.csv",
         features = args.features,
         feature_dir=args.feature_dir,
+        pretrained_dir=args.pretrained_dir,
         custom_feature_path=args.feature_dir,
         state=None,
         # TODO: Change approach to commandline! --> why do we need ModelEnum?
@@ -448,6 +449,10 @@ if __name__ == '__main__':
     # )
     parser.add_argument(
         '--feature_dir',
+        default=''
+    )
+    parser.add_argument(
+        '--pretrained_dir',
         default=''
     )
     parser.add_argument(

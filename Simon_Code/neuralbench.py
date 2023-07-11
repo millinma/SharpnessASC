@@ -89,7 +89,7 @@ class GlobalQueueActor:
 
 
 class ParallelActor:
-    def __init__(self, q: GlobalQueueActor, actor_num, data_root, device, run_name, results_path, features, feature_dir, custom_feature_path, state, base_folder, disable_progress_bar) -> None:
+    def __init__(self, q: GlobalQueueActor, actor_num, data_root, device, run_name, results_path, features, feature_dir, pretrained_dir, custom_feature_path, state, base_folder, disable_progress_bar) -> None:
         self.q = q
         self.actor_num = actor_num
 
@@ -99,6 +99,7 @@ class ParallelActor:
         self.results_path = results_path
         self.features = features
         self.feature_dir = feature_dir
+        self.pretrained_dir = pretrained_dir,
         self.custom_feature_path = custom_feature_path
         self.state = state
         self.base_folder = base_folder
@@ -117,6 +118,7 @@ class ParallelActor:
                 run = NeuralBench(
                     data_root=self.data_root,
                     feature_dir=self.feature_dir,
+                    pretrained_dir = self.pretrained_dir,
                     device=self.device,
                     run_name=self.run_name,
                     results_path=self.results_path,
@@ -486,6 +488,7 @@ class NeuralBench():
                  device: str,
                  features: str,
                  feature_dir: str = "",
+                 pretrained_dir: str = "",
                  run_name: str = None,
                  results_path: str = None,
                  custom_feature_path: str = None,
@@ -543,6 +546,7 @@ class NeuralBench():
             int(device[-1])) if isinstance(device, str) else torch.cuda.set_device(device)
         self.args.features = base_folder+features
         self.args.feature_dir = feature_dir
+        self.args.pretrained_dir = pretrained_dir
         self.args.results_path = results_path
         self.args.custom_feature_path = base_folder+custom_feature_path
         self.args.state = state
@@ -559,7 +563,7 @@ class NeuralBench():
         self.args.optimizer = optimizer.value if isinstance(
             optimizer, OptimizerEnum) else optimizer
         self.args.optimizer_name = optimizer.value if isinstance(
-            optimizer, OptimizerEnum) else optimizer.get_name()
+            optimizer, OptimizerEnum) else optimizer.get_name() 
         self.args.sheduler_wrapper = sheduler_wrapper
         if exclude_cities is None:
             exclude_cities = ["None"]
@@ -588,7 +592,7 @@ class NeuralBench():
                 str(self.args.seed)+"_" +\
                 str(self.args.sheduler_name)+"_" +\
                 str("-".join(self.args.exclude_cities))
-        print("-"*50)
+        # print("-"*50)
         print("pretrained")
         print(self.args.pretrained)
         self.run_name = run_name
@@ -712,6 +716,7 @@ class GridSearchModule:
                  device: str,
                  features: str,
                  feature_dir: str,
+                 pretrained_dir: str = "",
                  results_path: str = None,
                  custom_feature_path: str = None,
                  state: str = None,
@@ -760,6 +765,7 @@ class GridSearchModule:
         self.data_root = data_root
         self.device = device
         self.features = features
+        self.pretrained_dir = pretrained_dir
         self.results_path = results_path
         self.custom_feature_path = custom_feature_path
         self.state = state
@@ -875,7 +881,7 @@ class GridSearchModule:
             run_names, histories = zip(*run)
             run_name = run_names[0].replace(
                 "_"+run_names[0].split("_")[-2], "")
-            print("-"*50)
+            # print("-"*50)
             # print("Histories")
             # print(histories)
             run_name = "_".join(
@@ -991,6 +997,7 @@ class GridSearchModule:
                 run_name=None,
                 results_path=self.results_path,
                 features=self.features,
+                pretrained_dir=self.pretrained_dir,
                 custom_feature_path=self.custom_feature_path,
                 state=self.state,
                 dataset=experiment[0],
@@ -1064,6 +1071,8 @@ class GridSearchModule:
                     self.results_path,
                     self.features,
                     self.feature_dir,
+                    self.pretrained_dir,
+                    self.pretrained,
                     self.custom_feature_path,
                     self.state,
                     self.base_folder,

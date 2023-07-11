@@ -70,7 +70,29 @@
             //     // , "--no_random_seed"
             // ],
 
-            //    simon_code.training.py
+            //    simon_code/benchrunner.py
+            // "args": [
+            //     //"--cuda", "--mpi", "--partition", "train", "--dataset", "dcase", "--x=-0.25:0.25:3", "--dir_type", "states",
+            //     "--data-root", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/metadata",  
+            //     "--features", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/features.csv",
+            //     "--feature_dir", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/",
+            //     "--pretrained_dir", "/nas/staff/data_work/manuel/cloned_repos/visualisation/pretrained_weights/",
+            //     //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/test_hessian/state.pth.tar", 
+            //     //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/mixup_multilabel/state.pth.tar", 
+            //     "--results-root", "/nas/staff/data_work/manuel/cloned_repos/visualisation/results/test/run04/",
+            //     // "--dataset", "CIFAR10",
+            //     // "--dataset", "DCASE2020",
+            //     "--dataset", "DCASE2020", "CIFAR10",
+            //     "--approach", "cnn10",
+            //     // "--approach", "cnn14",
+            //     // "--approach", "cnn10",
+            //     "--batch_size", "32", "--epochs", "2", "--learning_rate", "1e-3", "--seed", "42", "--optimizer", "Adam", 
+            //     "--device", "cuda", "--num_gpus", "1", "--pretrained", "True", "False"
+                
+                
+            // ],
+                
+            //    simon_code/evaluation.py
             "args": [
                 //"--cuda", "--mpi", "--partition", "train", "--dataset", "dcase", "--x=-0.25:0.25:3", "--dir_type", "states",
                 "--data-root", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/metadata",  
@@ -78,14 +100,10 @@
                 "--feature_dir", "/data/eihw-gpu5/milliman/DCASE/DCASE2020/mel_spectrograms/",
                 //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/test_hessian/state.pth.tar", 
                 //"--model_file", "/nas/staff/data_work/manuel/cloned_repos/visualisation/loss-landscape/DCASE2020/trained_nets/run_batch32_cnn14_Adam/mixup_multilabel/state.pth.tar", 
-                "--results-root", "/nas/staff/data_work/manuel/cloned_repos/visualisation/results/test/run04/",
-                "--dataset", "CIFAR10",
-                // "--dataset", "DCASE2020",
-                "--approach", "cnn10",
+                "--results-root", "/nas/staff/data_work/manuel/cloned_repos/visualisation/results/test/considerable_runs/run01_p1_2lr_1bs_3opt_3mod_2ds/",
+                "--device", "cuda"
                 // "--approach", "cnn14",
                 // "--approach", "cnn10",
-                "--batch_size", "32", "--epochs", "1", "--learning_rate", "1e-3", "--seed", "42", "--optimizer", "Adam", 
-                "--device", "cuda", "--num_gpus", "1", "--pretrained", "True", "False"
                 
                 
             ],
