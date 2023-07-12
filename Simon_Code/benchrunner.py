@@ -84,15 +84,30 @@ def bench_setup_grid_1(args):
 
     #grid1._run_single()
     grid1.run()
-    grid1.export_metadata()
-    grid1.plot_runs(plot_type="accuracy")
-    grid1.plot_runs(plot_type="uar")
-    grid1.plot_runs(plot_type="f1")
-    grid1.plot_runs(plot_type="train_loss")
-    grid1.plot_runs(plot_type="valid_loss")
-    postprocessor = PostProcessing(
-        gridsearch=grid1, export_path="postprocessing_grid_1"
-    )
+    print("Grid search")
+    print(grid1.accuracy_history)
+    def is_only_empty_lists(variable):
+        if isinstance(variable, list):
+            if len(variable) == 0:  # Empty list
+                return True
+            else:
+                return all(is_only_empty_lists(item) for item in variable)
+        else:
+            return False
+
+
+    if not is_only_empty_lists(grid1.accuracy_history):
+    # if grid1.accuracy_history != []:
+        grid1.export_metadata()
+        grid1.plot_runs(plot_type="accuracy")
+        grid1.plot_runs(plot_type="uar")
+        grid1.plot_runs(plot_type="f1")
+        grid1.plot_runs(plot_type="train_loss")
+        grid1.plot_runs(plot_type="valid_loss")
+        postprocessor = PostProcessing(
+            gridsearch=grid1, export_path="postprocessing_grid_1"
+        )
+        postprocessor.export_csv(args, export_name="grid_1")
     # postprocessor.group_and_plot(
     #     group="optimizer"
     # )
@@ -105,7 +120,7 @@ def bench_setup_grid_1(args):
     # postprocessor.plot_best(
     #     group="learning_rate"
     # )
-    postprocessor.export_csv(args, export_name="grid_1")
+    
     # postprocessor.create_results(export_name="results")
 
 

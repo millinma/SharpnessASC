@@ -425,6 +425,14 @@ def run_training(args):
         
         encoder = LabelEncoder(
             list(test_dataset.class_to_idx.keys()))
+        
+        
+        df_dev['label'] = df_dev['label'].apply(
+                encoder.decode)
+        df_test['label'] = df_test['label'].apply(
+                encoder.decode)
+                
+
         n_classes = len(test_dataset.class_to_idx.keys())
         input_channels = 3
 
@@ -642,24 +650,30 @@ def run_training(args):
                 encoder.decode)
             results_df.reset_index().to_csv(os.path.join(epoch_folder, 'dev.csv'), index=False)
             np.save(os.path.join(epoch_folder, 'outputs.npy'), outputs)
+        
+            # print(results_df)
             if args.dataset == "DCASE2020":
-                # print(results_df)
-                logging_results = disaggregated_evaluation(
-                    results_df,
-                    df_dev,
-                    'scene_label',
-                    ['scene_category', 'city', 'device'],
-                    'categorical'
-                )
+                task = 'scene_label'
+                stratify = ['scene_category', 'city', 'device']
+            else:
+                task = "label"
+                stratify = []
+            logging_results = disaggregated_evaluation(
+                results_df,
+                df_dev,
+                task,
+                stratify,
+                'categorical'
+            )
 
-                with open(os.path.join(epoch_folder, 'dev.yaml'), 'w') as fp:
-                    yaml.dump(logging_results, fp)
-                for metric in logging_results.keys():
-                    writer.add_scalars(
-                        f'dev/{metric}',
-                        logging_results[metric],
-                        (epoch + 1) * len(train_loader)
-                    )
+            with open(os.path.join(epoch_folder, 'dev.yaml'), 'w') as fp:
+                yaml.dump(logging_results, fp)
+            for metric in logging_results.keys():
+                writer.add_scalars(
+                    f'dev/{metric}',
+                    logging_results[metric],
+                    (epoch + 1) * len(train_loader)
+                )
 
             torch.save(model.cpu().state_dict(), os.path.join(
                 epoch_folder, 'state.pth.tar'))
@@ -696,10 +710,10 @@ def run_training(args):
         print("Final Train results: ", train_results)
         print("Final Train loss: ", train_loss)
 
-        sharpness_values = calculate_sharpness(model, device, train_loader, transfer_features, args.disable_progress_bar, criterion)
-        print(f'Sharpness:\n{yaml.dump(results)}')
+        # sharpness_values = calculate_sharpness(model, device, train_loader, transfer_features, args.disable_progress_bar, criterion)
+        # print(f'Sharpness:\n{yaml.dump(results)}')
         #results["sharpness_value"] = sharpness_values
-        print("Sharpness Value: ", sharpness_values)
+        # print("Sharpness Value: ", sharpness_values)
         print(
             f'Best dev results found at epoch {best_epoch+1}:\n{yaml.dump(best_results)}')
         best_results['Epoch'] = best_epoch + 1
@@ -714,40 +728,50 @@ def run_training(args):
                 experiment_folder,
                 f'Epoch_{epochs}'
             )
-    if args.dataset == "DCASE2020": 
-        print("saving to: ", os.path.join(experiment_folder, 'test_holistic.yaml'))
-        if not os.path.exists(os.path.join(experiment_folder, 'test_holistic.yaml')):
-            model.load_state_dict(best_state)
-            test_results, targets, predictions, outputs, valid_loss = evaluate_categorical(
-                model, device, test_loader, transfer_features, args.disable_progress_bar, criterion)
-            print(f'Best test results:\n{yaml.dump(test_results)}')
-            torch.save(best_state, os.path.join(
-                experiment_folder, 'state.pth.tar'))
-            np.save(os.path.join(experiment_folder, 'targets.npy'), targets)
-            np.save(os.path.join(experiment_folder, 'outputs.npy'), outputs)
-            np.save(os.path.join(experiment_folder, 'predictions.npy'), outputs)
-            results_df = pd.DataFrame(
-                index=df_test.index,
-                data=predictions,
-                columns=['predictions']
+    # if args.dataset == "DCASE2020":
+    
+    print("saving to: ", os.path.join(experiment_folder, 'test_holistic.yaml'))
+    if not os.path.exists(os.path.join(experiment_folder, 'test_holistic.yaml')):
+    # if True:
+        model.load_state_dict(best_state)
+        test_results, targets, predictions, outputs, valid_loss = evaluate_categorical(
+            model, device, test_loader, transfer_features, args.disable_progress_bar, criterion)
+        print(f'Best test results:\n{yaml.dump(test_results)}')
+        torch.save(best_state, os.path.join(
+            experiment_folder, 'state.pth.tar'))
+        np.save(os.path.join(experiment_folder, 'targets.npy'), targets)
+        np.save(os.path.join(experiment_folder, 'outputs.npy'), outputs)
+        np.save(os.path.join(experiment_folder, 'predictions.npy'), outputs)
+        results_df = pd.DataFrame(
+            index=df_test.index,
+            data=predictions,
+            columns=['predictions']
+        )
+        results_df['predictions'] = results_df['predictions'].apply(
+            encoder.decode)
+        results_df.reset_index().to_csv(os.path.join(epoch_folder, 'test.csv'), index=False)
+        # print(results_df)
+        # print(df_test)
+        with open(os.path.join(experiment_folder, 'test.yaml'), 'w') as fp:
+            yaml.dump(test_results, fp)
+            if args.dataset == "DCASE2020":
+                task = 'scene_label'
+                stratify = ['scene_category', 'city', 'device']
+            else:
+                task = "label"
+                stratify = []
+            logging_results = disaggregated_evaluation(
+                results_df,
+                df_test,
+                task,
+                stratify,
+                'categorical'
             )
-            results_df['predictions'] = results_df['predictions'].apply(
-                encoder.decode)
-            results_df.reset_index().to_csv(os.path.join(epoch_folder, 'test.csv'), index=False)
-            with open(os.path.join(experiment_folder, 'test.yaml'), 'w') as fp:
-                yaml.dump(test_results, fp)
-                logging_results = disaggregated_evaluation(
-                    results_df,
-                    df_test,
-                    'scene_label',
-                    ['scene_category', 'city', 'device'],
-                    'categorical'
-                )
-                with open(os.path.join(experiment_folder, 'test_holistic.yaml'), 'w') as fp:
-                    yaml.dump(logging_results, fp)
-        else:
-            print('Evaluation already run')
-            # in case we don't have any training the benchrunner doesn't make a lot of sense.
+            with open(os.path.join(experiment_folder, 'test_holistic.yaml'), 'w') as fp:
+                yaml.dump(logging_results, fp)
+    else:
+        print('Evaluation already run')
+        # in case we don't have any training the benchrunner doesn't make a lot of sense.
 
     return accuracy_history, uar_history, f1_history, train_loss_history, valid_loss_history
 

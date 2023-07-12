@@ -702,8 +702,8 @@ class NeuralBench():
         print("")
         self.accuracy_history, self.uar_history, self.f1_history, self.train_loss_history, self.valid_loss_history = run_training(
             self.args)
-        print("Accuracy history!!!!")
-        print(self.accuracy_history)
+        # print("Accuracy history!!!!")
+        # print(self.accuracy_history)
         if self.accuracy_history != []:
             self.export_metadata()
             self.plot_accuracy()

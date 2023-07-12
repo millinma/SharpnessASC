@@ -110,6 +110,10 @@ def disaggregated_evaluation(df, groundtruth, task, stratify, evaluation_type: s
     df = df.reindex(groundtruth.index)
     results = {key: {} for key in metrics.keys()}
     for key in metrics.keys():
+        # print(df)
+        # print("groundtruth")
+        # print(groundtruth.shape)
+        # print(groundtruth)
         results[key]['all'] = metrics[key](
             groundtruth[task],
             df['predictions']

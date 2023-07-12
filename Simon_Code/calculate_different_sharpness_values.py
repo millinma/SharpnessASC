@@ -168,7 +168,7 @@ def calculate_sharpness(model, device, loader, transfer_func, disable, criterion
     #     # verbose=True, return_output=True, adaptive=args.adaptive, version='default', norm='l2'
     #     )
     sharpness_obj, sharpness_err, _, output = sharpness_adaptive.eval_APGD_sharpness(
-        model, batches, criterion, 0., 0., n_iters=200, return_output=True, rho=0.002
+        model, batches, criterion, 0., 0., n_iters=20, return_output=True, rho=0.002
         # rho=args.rho, n_iters=args.n_iters, n_restarts=args.n_restarts, step_size_mult=args.step_size_mult,
         # rand_init=args.sharpness_rand_init, no_grad_norm=args.no_grad_norm,
         # verbose=True, return_output=True, adaptive=args.adaptive, version='default', norm='l2'

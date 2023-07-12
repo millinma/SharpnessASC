@@ -3,6 +3,9 @@ Simon_Code/__pycache__/
 Simon_Code/*.py[cod]
 Simon_Code/*$py.class
 
+# VS Code
+.vscode/launch.json
+
 # C extensions
 Simon_Code/*.so
 
